@@ -1,14 +1,20 @@
-import { EventList } from "./components/event-list"
-import { CreateEventButton } from "./components/create-event-button"
+import { NavHeader } from "@/components/ui/nav-header";
 
 export default function AdminPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Eventos</h2>
-        <CreateEventButton />
+    <>
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h1 className="text-2xl font-semibold text-white">
+              Panel de Administración
+            </h1>
+            <p className="mt-2 text-sm text-gray-400">
+              Selecciona una opción del menú para comenzar
+            </p>
+          </div>
+        </div>
       </div>
-      <EventList />
-    </div>
-  )
-} 
+    </>
+  );
+}

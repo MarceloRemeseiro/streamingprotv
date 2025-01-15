@@ -5,27 +5,40 @@ import { prisma } from "@/lib/prisma"
 import { LogoutButton } from "@/components/ui/logout-button"
 import { BackButton } from "@/components/ui/back-button"
 import { StreamPlayer } from "@/components/ui/stream-player"
+import { NavHeader } from "@/components/ui/nav-header"
+import type { Event, StreamConfig, Prisma } from "@prisma/client"
+
+type Theme = {
+  primaryColor: string
+  secondaryColor: string
+  backgroundColor: string
+  textColor: string
+  logoUrl?: string
+}
+
+type EventWithRelations = Event & {
+  theme: Prisma.JsonValue & Theme | null
+  streamConfig: StreamConfig | null
+}
 
 export default async function PlayerPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
 
-  if (!session) {
+  if (!session?.user?.email) {
     redirect('/login')
   }
 
-  // Obtener el evento
   const event = await prisma.event.findUnique({
     where: { id: params.id },
     include: {
       streamConfig: true
     }
-  })
+  }) as EventWithRelations | null
 
   if (!event) {
     redirect('/')
   }
 
-  // Verificar que el usuario tiene acceso a este evento
   const user = await prisma.user.findUnique({
     where: { 
       email: session.user.email,
@@ -33,7 +46,6 @@ export default async function PlayerPage({ params }: { params: { id: string } })
     }
   })
 
-  // Si no es admin y no tiene acceso al evento, redirigir
   if (!user && session.user.role !== 'ADMIN') {
     redirect('/')
   }
@@ -43,18 +55,12 @@ export default async function PlayerPage({ params }: { params: { id: string } })
       className="min-h-screen"
       style={{ backgroundColor: event.theme?.backgroundColor || '#111827' }}
     >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <BackButton
-            className="text-sm hover:opacity-80 transition-opacity"
-            style={{ color: event.theme?.secondaryColor || '#9CA3AF' }}
-          />
-          <LogoutButton 
-            className="hover:opacity-80 transition-opacity"
-            style={{ color: event.theme?.secondaryColor || '#9CA3AF' }}
-          />
-        </div>
+      <NavHeader 
+        logo={event.theme?.logoUrl}
+        theme={event.theme}
+      />
 
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h1 
             className="text-3xl font-bold mb-2"
@@ -77,7 +83,8 @@ export default async function PlayerPage({ params }: { params: { id: string } })
           {event.streamConfig?.videoId ? (
             <StreamPlayer 
               provider={event.streamConfig.provider} 
-              videoId={event.streamConfig.videoId} 
+              videoId={event.streamConfig.videoId}
+              mode={event.streamConfig.mode}
               className="w-full h-full" 
             />
           ) : (

@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { LogoutButton } from "@/components/ui/logout-button"
+import { NavHeader } from "@/components/ui/nav-header"
+import Link from "next/link"
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions)
@@ -16,92 +17,111 @@ export default async function HomePage() {
     redirect('/admin')
   }
 
-  // Obtener el evento del usuario
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     include: {
-      event: true
+      event: {
+        select: {
+          id: true,
+          name: true,
+          title: true,
+          subtitle: true,
+          description: true,
+          isActive: true,
+          theme: true
+        }
+      }
     }
   })
 
   if (!user?.event) {
-    return <div>No tienes acceso a ningún evento</div>
+    return (
+      <>
+        <NavHeader 
+          logo="/logo.png"
+        />
+        <div className="min-h-screen flex items-center justify-center bg-gray-900">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">
+              No tienes acceso a ningún evento
+            </h1>
+            <p className="text-gray-400">
+              Contacta con el administrador para obtener acceso
+            </p>
+          </div>
+        </div>
+      </>
+    )
   }
 
   const { event } = user
 
   return (
-    <div 
-      className="min-h-screen"
-      style={{ backgroundColor: event.theme?.backgroundColor || '#f3f4f6' }}
-    >
-      <header className="shadow" style={{ backgroundColor: event.theme?.secondaryColor || '#ffffff' }}>
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+    <>
+      <NavHeader 
+        logo={event.theme?.logoUrl || '/logo.png'}
+        theme={event.theme}
+      />
+      <main 
+        className="min-h-screen"
+        style={{ backgroundColor: event.theme?.backgroundColor || '#111827' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
             <h1 
-              className="text-3xl font-bold"
-              style={{ color: event.theme?.primaryColor || '#111827' }}
+              className="text-4xl font-bold mb-4"
+              style={{ color: event.theme?.primaryColor || '#ffffff' }}
             >
-              {event.title || `Bienvenido a ${event.name}`}
+              {event.title || event.name}
             </h1>
-            <LogoutButton 
-              className="hover:opacity-80 transition-opacity"
-              style={{ color: event.theme?.textColor || '#4B5563' }}
-            />
-          </div>
-        </div>
-      </header>
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div 
-          className="overflow-hidden shadow rounded-lg"
-          style={{ backgroundColor: event.theme?.secondaryColor || '#ffffff' }}
-        >
-          <div className="px-4 py-5 sm:p-6">
-            <h2 
-              className="text-lg font-medium mb-2"
-              style={{ color: event.theme?.primaryColor || '#111827' }}
+            {event.subtitle && (
+              <p 
+                className="text-xl mb-8"
+                style={{ color: event.theme?.secondaryColor || '#9CA3AF' }}
+              >
+                {event.subtitle}
+              </p>
+            )}
+            {event.description && (
+              <p 
+                className="text-lg mb-12 max-w-3xl mx-auto"
+                style={{ color: event.theme?.textColor || '#D1D5DB' }}
+              >
+                {event.description}
+              </p>
+            )}
+            
+            <Link
+              href={`/player/${event.id}`}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm hover:opacity-90 transition-opacity"
+              style={{ 
+                backgroundColor: event.theme?.primaryColor || '#4F46E5',
+                color: event.theme?.secondaryColor || '#ffffff'
+              }}
             >
-              {event.subtitle || 'Tu evento está listo'}
-            </h2>
-            <div className="mt-3">
-              <p style={{ color: event.theme?.textColor || '#6B7280' }}>
-                {event.description || 'Accede al streaming del evento cuando esté disponible.'}
+              Ver Streaming
+            </Link>
+          </div>
+
+          <div 
+            className="mt-12 max-w-lg mx-auto p-6 rounded-lg"
+            style={{ backgroundColor: event.theme?.secondaryColor || '#1F2937', opacity: 0.9 }}
+          >
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ 
+                  backgroundColor: event.isActive ? '#10B981' : '#EF4444',
+                  boxShadow: event.isActive ? '0 0 12px #10B981' : 'none'
+                }}
+              />
+              <p style={{ color: event.theme?.textColor || '#D1D5DB' }}>
+                {event.isActive ? 'Evento en vivo' : 'El evento aún no ha comenzado'}
               </p>
             </div>
-            <div className="mt-5">
-              <a
-                href={`/player/${event.id}`}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm hover:opacity-90 transition-opacity"
-                style={{ 
-                  backgroundColor: event.theme?.primaryColor || '#4F46E5',
-                  color: event.theme?.secondaryColor || '#ffffff'
-                }}
-              >
-                Ir al streaming
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Estado del evento */}
-        <div 
-          className="mt-6 p-4 rounded-lg"
-          style={{ backgroundColor: event.theme?.secondaryColor || '#ffffff', opacity: 0.9 }}
-        >
-          <div className="flex items-center space-x-2">
-            <div 
-              className="w-2 h-2 rounded-full"
-              style={{ 
-                backgroundColor: event.isActive ? '#10B981' : '#EF4444',
-                boxShadow: event.isActive ? '0 0 12px #10B981' : 'none'
-              }}
-            />
-            <p style={{ color: event.theme?.textColor || '#6B7280' }}>
-              {event.isActive ? 'Evento activo' : 'Evento no iniciado'}
-            </p>
           </div>
         </div>
       </main>
-    </div>
+    </>
   )
 }

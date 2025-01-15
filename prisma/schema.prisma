@@ -45,6 +45,7 @@ model StreamConfig {
   id            String         @id @default(cuid())
   provider      StreamProvider @default(CLOUDFLARE)
   videoId       String         // ID del video (Cloudflare o YouTube)
+  mode          String         @default("iframe") // 'iframe' | 'hls' | 'webrtc'
   isLive        Boolean        @default(false)
   event         Event          @relation(fields: [eventId], references: [id])
   eventId       String         @unique

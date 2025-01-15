@@ -11,12 +11,16 @@ type Theme = {
   logoUrl?: string
 }
 
+type StreamProvider = 'CLOUDFLARE' | 'YOUTUBE'
+type StreamMode = 'iframe' | 'hls' | 'dash'
+
 type EventContent = {
   title: string
   subtitle: string
   description: string
-  streamProvider: 'CLOUDFLARE' | 'YOUTUBE'
+  streamProvider: StreamProvider
   videoId: string
+  streamMode: StreamMode
 }
 
 export default function ThemeEditor({ eventId }: { eventId: string }) {
@@ -32,10 +36,12 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
     subtitle: '',
     description: '',
     streamProvider: 'CLOUDFLARE',
-    videoId: ''
+    videoId: '',
+    streamMode: 'hls'
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     async function loadEvent() {
@@ -50,7 +56,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
           subtitle: data.subtitle || '',
           description: data.description || '',
           streamProvider: data.streamConfig?.provider || 'CLOUDFLARE',
-          videoId: data.streamConfig?.videoId || ''
+          videoId: data.streamConfig?.videoId || '',
+          streamMode: data.streamConfig?.mode || 'hls'
         })
       } catch (error) {
         console.error('Error loading event:', error)
@@ -66,6 +73,14 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
     e.preventDefault()
     setIsSaving(true)
 
+    console.log('Enviando configuración:', {
+      streamConfig: {
+        provider: content.streamProvider,
+        videoId: content.videoId,
+        mode: content.streamMode
+      }
+    })
+
     try {
       const response = await fetch(`/api/events/${eventId}`, {
         method: 'PUT',
@@ -77,8 +92,11 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
           title: content.title,
           subtitle: content.subtitle,
           description: content.description,
-          streamProvider: content.streamProvider,
-          videoId: content.videoId
+          streamConfig: {
+            provider: content.streamProvider,
+            videoId: content.videoId,
+            mode: content.streamMode
+          }
         }),
       })
 
@@ -92,6 +110,39 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files?.[0]) return
+    
+    setIsUploading(true)
+    const formData = new FormData()
+    formData.append('file', e.target.files[0])
+    
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!response.ok) throw new Error('Error al subir el logo')
+      
+      const data = await response.json()
+      setTheme(prev => ({ ...prev, logoUrl: data.url }))
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const handleStreamProviderChange = (provider: StreamProvider) => {
+    setContent(prev => ({
+      ...prev,
+      streamProvider: provider,
+      // Si cambiamos a YouTube, forzamos modo iframe
+      streamMode: provider === 'YOUTUBE' ? 'iframe' : prev.streamMode || 'hls'
+    }))
   }
 
   if (isLoading) {
@@ -112,6 +163,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-6">
+          
+
           <div>
             <label className="block text-sm font-medium text-gray-200">
               Color Principal
@@ -191,6 +244,40 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
               />
             </div>
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-200">
+              Logo del Evento
+            </label>
+            <div className="mt-1 flex items-center space-x-4">
+              <div className="flex-1">
+                <input
+                  type="file"
+                  onChange={handleLogoUpload}
+                  accept="image/*"
+                  className="mt-1 block w-full text-sm text-gray-400
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-medium
+                    file:bg-gray-700 file:text-gray-300
+                    hover:file:bg-gray-600"
+                />
+              </div>
+              {isUploading && (
+                <div className="text-sm text-gray-400">
+                  Subiendo...
+                </div>
+              )}
+            </div>
+            {theme.logoUrl && (
+              <div className="mt-2">
+                <img 
+                  src={theme.logoUrl} 
+                  alt="Logo Preview" 
+                  className="h-20 object-contain bg-gray-800 rounded-md p-2"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         <div>
@@ -248,37 +335,74 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-200">
-                Proveedor de Streaming
-              </label>
-              <select
-                value={content.streamProvider}
-                onChange={(e) => setContent({ 
-                  ...content, 
-                  streamProvider: e.target.value as 'CLOUDFLARE' | 'YOUTUBE' 
-                })}
-                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
-                >
-                <option value="CLOUDFLARE">Cloudflare Stream</option>
-                <option value="YOUTUBE">YouTube</option>
-              </select>
-            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-200">Configuración del Stream</h3>
+              
+              <div className="grid gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Proveedor de Streaming
+                  </label>
+                  <select
+                    value={content.streamProvider}
+                    onChange={(e) => handleStreamProviderChange(e.target.value as StreamProvider)}
+                    className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                  >
+                    <option value="CLOUDFLARE">Cloudflare Stream</option>
+                    <option value="YOUTUBE">YouTube</option>
+                  </select>
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-200">
-                ID del Video
-              </label>
-              <input
-                type="text"
-                value={content.videoId}
-                onChange={(e) => setContent({ ...content, videoId: e.target.value })}
-                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
-                placeholder={content.streamProvider === 'CLOUDFLARE' 
-                  ? 'Ej: 31c9291d43a2ee384d5e7b6d462c2f8e'
-                  : 'Ej: dQw4w9WgXcQ'
-                }
-              />
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">
+                    URL del Stream
+                  </label>
+                  <input
+                    type="text"
+                    value={content.videoId}
+                    onChange={(e) => setContent({ ...content, videoId: e.target.value })}
+                    className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                    placeholder={
+                      content.streamProvider === 'YOUTUBE' 
+                        ? 'URL completa del video de YouTube'
+                        : 'URL completa del stream de Cloudflare (ej: https://customer-...cloudflarestream.com/VIDEO_ID)'
+                    }
+                  />
+                  <p className="mt-1 text-sm text-gray-400">
+                    {content.streamProvider === 'YOUTUBE' 
+                      ? 'Pega la URL completa del video de YouTube'
+                      : 'Pega la URL completa del stream de Cloudflare, incluyendo el dominio'
+                    }
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-200">
+                    Modo de Reproducción
+                  </label>
+                  <select
+                    value={content.streamMode}
+                    onChange={(e) => setContent({ 
+                      ...content, 
+                      streamMode: e.target.value as StreamMode 
+                    })}
+                    className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                  >
+                    <option value="iframe">iFrame (reproductor nativo)</option>
+                    {content.streamProvider === 'CLOUDFLARE' && (
+                      <>
+                        <option value="hls">HLS (mejor compatibilidad)</option>
+                        <option value="dash">DASH (mejor calidad)</option>
+                      </>
+                    )}
+                  </select>
+                  <p className="mt-1 text-sm text-gray-400">
+                    {content.streamMode === 'iframe' && 'Usa el reproductor nativo del proveedor'}
+                    {content.streamMode === 'hls' && 'HLS ofrece mejor compatibilidad con dispositivos'}
+                    {content.streamMode === 'dash' && 'DASH ofrece mejor calidad y control'}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -305,6 +429,15 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
             borderRadius: '0.5rem',
           }}
         >
+          <div className="flex items-center justify-between mb-6">
+            {theme.logoUrl && (
+              <img 
+                src={theme.logoUrl} 
+                alt="Logo del Evento"
+                className="h-16 object-contain"
+              />
+            )}
+          </div>
           <h1 style={{ color: theme.primaryColor }}>Título de Ejemplo</h1>
           <p style={{ color: theme.textColor }}>
             Este es un texto de ejemplo para ver cómo se verán los colores en la página del evento.

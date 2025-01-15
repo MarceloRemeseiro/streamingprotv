@@ -5,76 +5,72 @@ import { authOptions } from "@/lib/auth"
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const id = await context.params.id
+
   try {
     const session = await getServerSession(authOptions)
     
     if (!session) {
-      return NextResponse.json(
-        { message: 'No autorizado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
     }
 
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         streamConfig: true
       }
     })
 
     if (!event) {
-      return NextResponse.json(
-        { message: 'Evento no encontrado' },
-        { status: 404 }
-      )
+      return NextResponse.json({ message: 'Evento no encontrado' }, { status: 404 })
     }
 
     return NextResponse.json(event)
   } catch (error) {
-    console.error('Error getting event:', error)
-    return NextResponse.json(
-      { message: 'Error al obtener el evento' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Error al obtener el evento' }, { status: 500 })
   }
 }
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
+  const id = context.params.id
+
   try {
     const session = await getServerSession(authOptions)
-    
     if (session?.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { message: 'No autorizado' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: 'No autorizado' }, { status: 401 })
     }
 
-    const { theme, title, subtitle, description, streamProvider, videoId } = await request.json()
+    const body = await request.json()
+    console.log('API recibió:', body)
 
-    // Actualizar el evento
     const event = await prisma.event.update({
-      where: { id: params.id },
+      where: { id },
       data: {
-        theme,
-        title,
-        subtitle,
-        description,
+        theme: body.theme,
+        title: body.title,
+        subtitle: body.subtitle,
+        description: body.description,
         streamConfig: {
           upsert: {
             create: {
-              provider: streamProvider,
-              videoId,
+              id: id,
+              provider: body.streamConfig.provider,
+              videoId: body.streamConfig.videoId,
+              mode: body.streamConfig.mode,
               isLive: false
             },
             update: {
-              provider: streamProvider,
-              videoId
+              provider: body.streamConfig.provider,
+              videoId: body.streamConfig.videoId,
+              mode: body.streamConfig.mode
+            },
+            where: {
+              eventId: id
             }
           }
         }
@@ -84,12 +80,12 @@ export async function PUT(
       }
     })
 
+    console.log('Evento actualizado:', event)
     return NextResponse.json(event)
   } catch (error) {
-    console.error('Error updating event:', error)
-    return NextResponse.json(
-      { message: 'Error al actualizar el evento' },
-      { status: 500 }
-    )
+    if (error instanceof Error) {
+      console.error('Error updating event:', error.message)
+    }
+    return NextResponse.json({ message: 'Error al actualizar el evento' }, { status: 500 })
   }
 } 
