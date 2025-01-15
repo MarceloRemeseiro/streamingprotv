@@ -2,11 +2,10 @@ import { getServerSession } from "next-auth/next"
 import { redirect } from "next/navigation"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { LogoutButton } from "@/components/ui/logout-button"
-import { BackButton } from "@/components/ui/back-button"
 import { StreamPlayer } from "@/components/ui/stream-player"
 import { NavHeader } from "@/components/ui/nav-header"
 import type { Event, StreamConfig, Prisma } from "@prisma/client"
+import { EventStatusPill } from '@/components/ui/event-status-pill'
 
 type Theme = {
   primaryColor: string
@@ -61,6 +60,7 @@ export default async function PlayerPage({ params }: { params: { id: string } })
       />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
         <div className="mb-6">
           <h1 
             className="text-3xl font-bold mb-2"
@@ -68,6 +68,7 @@ export default async function PlayerPage({ params }: { params: { id: string } })
           >
             {event.title || event.name}
           </h1>
+          
           <p
             className="text-lg"
             style={{ color: event.theme?.secondaryColor || '#9CA3AF' }}
@@ -104,23 +105,7 @@ export default async function PlayerPage({ params }: { params: { id: string } })
           )}
         </div>
 
-        <div 
-          className="mt-6 p-4 rounded-lg"
-          style={{ backgroundColor: event.theme?.secondaryColor || '#1F2937', opacity: 0.9 }}
-        >
-          <div className="flex items-center space-x-2">
-            <div 
-              className="w-2 h-2 rounded-full"
-              style={{ 
-                backgroundColor: event.isActive ? '#10B981' : '#EF4444',
-                boxShadow: event.isActive ? '0 0 12px #10B981' : 'none'
-              }}
-            />
-            <p style={{ color: event.theme?.textColor || '#9CA3AF' }}>
-              {event.isActive ? 'Evento activo' : 'Evento no iniciado'}
-            </p>
-          </div>
-        </div>
+        
       </div>
     </div>
   )

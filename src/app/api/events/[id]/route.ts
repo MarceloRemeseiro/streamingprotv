@@ -46,8 +46,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    console.log('API recibió:', body)
-
+    
     const event = await prisma.event.update({
       where: { id },
       data: {
@@ -55,10 +54,10 @@ export async function PUT(
         title: body.title,
         subtitle: body.subtitle,
         description: body.description,
+        isActive: body.isActive,
         streamConfig: {
           upsert: {
             create: {
-              id: id,
               provider: body.streamConfig.provider,
               videoId: body.streamConfig.videoId,
               mode: body.streamConfig.mode,
@@ -80,12 +79,12 @@ export async function PUT(
       }
     })
 
-    console.log('Evento actualizado:', event)
     return NextResponse.json(event)
   } catch (error) {
-    if (error instanceof Error) {
-      console.error('Error updating event:', error.message)
-    }
-    return NextResponse.json({ message: 'Error al actualizar el evento' }, { status: 500 })
+    console.error('Error updating event:', error)
+    return NextResponse.json(
+      { message: 'Error al actualizar el evento' }, 
+      { status: 500 }
+    )
   }
 } 

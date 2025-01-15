@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { Switch } from "@/components/ui/switch"
 
 type Theme = {
   primaryColor: string
@@ -21,6 +22,7 @@ type EventContent = {
   streamProvider: StreamProvider
   videoId: string
   streamMode: StreamMode
+  isActive: boolean
 }
 
 export default function ThemeEditor({ eventId }: { eventId: string }) {
@@ -37,7 +39,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
     description: '',
     streamProvider: 'CLOUDFLARE',
     videoId: '',
-    streamMode: 'hls'
+    streamMode: 'hls',
+    isActive: false
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -57,7 +60,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
           description: data.description || '',
           streamProvider: data.streamConfig?.provider || 'CLOUDFLARE',
           videoId: data.streamConfig?.videoId || '',
-          streamMode: data.streamConfig?.mode || 'hls'
+          streamMode: data.streamConfig?.mode || 'hls',
+          isActive: data.isActive || false
         })
       } catch (error) {
         console.error('Error loading event:', error)
@@ -92,6 +96,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
           title: content.title,
           subtitle: content.subtitle,
           description: content.description,
+          isActive: content.isActive,
           streamConfig: {
             provider: content.streamProvider,
             videoId: content.videoId,
@@ -405,6 +410,26 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-200 mb-2">
+            Estado del Evento
+          </label>
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={content.isActive}
+              onCheckedChange={(checked) => 
+                setContent({ ...content, isActive: checked })
+              }
+            />
+            <span className="text-sm text-gray-300">
+              {content.isActive ? 'Evento en vivo' : 'Evento offline'}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-gray-400">
+            Activa esta opción cuando el evento esté transmitiendo en vivo
+          </p>
         </div>
 
         <div className="flex justify-end">

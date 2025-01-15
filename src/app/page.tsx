@@ -4,15 +4,38 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NavHeader } from "@/components/ui/nav-header"
 import Link from "next/link"
+import type { Event, Prisma } from "@prisma/client"
+import { EventStatusPill } from '@/components/ui/event-status-pill'
+
+type Theme = {
+  primaryColor: string
+  secondaryColor: string
+  backgroundColor: string
+  textColor: string
+  logoUrl?: string
+}
+
+type EventWithTheme = {
+  id: string
+  name: string
+  title: string | null
+  subtitle: string | null
+  description: string | null
+  isActive: boolean
+  theme: Prisma.JsonValue & Theme | null
+}
+
+type UserWithEvent = {
+  event: EventWithTheme | null
+}
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions)
 
-  if (!session) {
+  if (!session?.user?.email) {
     redirect('/login')
   }
 
-  // Si es admin, redirigir al panel de admin
   if (session.user.role === 'ADMIN') {
     redirect('/admin')
   }
@@ -32,7 +55,7 @@ export default async function HomePage() {
         }
       }
     }
-  })
+  }) as UserWithEvent | null
 
   if (!user?.event) {
     return (
@@ -63,9 +86,16 @@ export default async function HomePage() {
         theme={event.theme}
       />
       <main 
-        className="min-h-screen"
+        className="min-h-screen relative"
         style={{ backgroundColor: event.theme?.backgroundColor || '#111827' }}
       >
+        <div className="absolute top-4 right-4">
+          <EventStatusPill 
+            isActive={event.isActive} 
+            theme={event.theme}
+          />
+        </div>
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 
@@ -91,34 +121,18 @@ export default async function HomePage() {
               </p>
             )}
             
-            <Link
-              href={`/player/${event.id}`}
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm hover:opacity-90 transition-opacity"
-              style={{ 
-                backgroundColor: event.theme?.primaryColor || '#4F46E5',
-                color: event.theme?.secondaryColor || '#ffffff'
-              }}
-            >
-              Ver Streaming
-            </Link>
-          </div>
-
-          <div 
-            className="mt-12 max-w-lg mx-auto p-6 rounded-lg"
-            style={{ backgroundColor: event.theme?.secondaryColor || '#1F2937', opacity: 0.9 }}
-          >
-            <div className="flex items-center space-x-3">
-              <div 
-                className="w-3 h-3 rounded-full"
+            {event.isActive && (
+              <Link
+                href={`/player/${event.id}`}
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm hover:opacity-90 transition-opacity"
                 style={{ 
-                  backgroundColor: event.isActive ? '#10B981' : '#EF4444',
-                  boxShadow: event.isActive ? '0 0 12px #10B981' : 'none'
+                  backgroundColor: event.theme?.primaryColor || '#4F46E5',
+                  color: event.theme?.secondaryColor || '#ffffff'
                 }}
-              />
-              <p style={{ color: event.theme?.textColor || '#D1D5DB' }}>
-                {event.isActive ? 'Evento en vivo' : 'El evento aún no ha comenzado'}
-              </p>
-            </div>
+              >
+                Ver Streaming
+              </Link>
+            )}
           </div>
         </div>
       </main>
