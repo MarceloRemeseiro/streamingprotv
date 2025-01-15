@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  event         Event?    @relation(fields: [eventId], references: [id])
+  eventId       String?
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  name          String
+  code          String    @unique
+  startDate     DateTime
+  endDate       DateTime
+  isActive      Boolean   @default(true)
+  theme         Json?     // Colores, logos, etc.
+  title         String?   // Título personalizado para el player
+  subtitle      String?   // Subtítulo personalizado para el player
+  description   String?   // Texto descriptivo
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  streamConfig  StreamConfig?
+  participants  User[]    
+}
+
+model StreamConfig {
+  id            String    @id @default(cuid())
+  streamUrl     String    // iframe completo del streaming
+  isLive        Boolean   @default(false)
+  event         Event     @relation(fields: [eventId], references: [id])
+  eventId       String    @unique
+}
+
+enum Role {
+  ADMIN
+  USER
+} 
