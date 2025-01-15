@@ -63,7 +63,7 @@ export function CreateEventForm({ onClose, onEventCreated }: {
         <input
           type="text"
           required
-          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
           value={formData.name}
           onChange={e => setFormData({ ...formData, name: e.target.value })}
         />
@@ -76,7 +76,7 @@ export function CreateEventForm({ onClose, onEventCreated }: {
         <input
           type="text"
           required
-          className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
           value={formData.code}
           onChange={e => setFormData({ ...formData, code: e.target.value })}
         />
@@ -90,7 +90,7 @@ export function CreateEventForm({ onClose, onEventCreated }: {
           <input
             type="datetime-local"
             required
-            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
             value={formData.startDate}
             onChange={e => setFormData({ ...formData, startDate: e.target.value })}
           />
@@ -103,7 +103,7 @@ export function CreateEventForm({ onClose, onEventCreated }: {
           <input
             type="datetime-local"
             required
-            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
             value={formData.endDate}
             onChange={e => setFormData({ ...formData, endDate: e.target.value })}
           />

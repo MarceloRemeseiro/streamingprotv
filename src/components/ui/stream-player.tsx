@@ -1,43 +1,34 @@
-'use client'
-
-import { useEffect, useRef } from 'react'
+ 'use client'
 
 interface StreamPlayerProps {
-  url: string
+  provider: 'CLOUDFLARE' | 'YOUTUBE'
+  videoId: string
   className?: string
 }
 
-export function StreamPlayer({ url, className = "" }: StreamPlayerProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
+export function StreamPlayer({ provider, videoId, className = "" }: StreamPlayerProps) {
+  if (!videoId) return null
 
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    // Extraer la URL del src del iframe usando DOMParser
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(url, 'text/html')
-    const iframe = doc.querySelector('iframe')
-    
-    if (!iframe) return
-
-    // Crear un nuevo iframe con los atributos seguros
-    const safeIframe = document.createElement('iframe')
-    safeIframe.src = iframe.src
-    safeIframe.className = 'w-full h-full'
-    safeIframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-    safeIframe.allowFullscreen = true
-    safeIframe.style.border = 'none'
-
-    // Limpiar y añadir el iframe seguro
-    containerRef.current.innerHTML = ''
-    containerRef.current.appendChild(safeIframe)
-
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ''
-      }
+  const getEmbedUrl = () => {
+    switch (provider) {
+      case 'CLOUDFLARE':
+        return `https://customer-${videoId}.cloudflarestream.com/${videoId}/iframe`
+      case 'YOUTUBE':
+        return `https://www.youtube.com/embed/${videoId}`
+      default:
+        return ''
     }
-  }, [url])
+  }
 
-  return <div ref={containerRef} className={className} />
+  return (
+    <div className={className}>
+      <iframe
+        src={getEmbedUrl()}
+        className="w-full h-full"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  )
 } 

@@ -55,7 +55,7 @@ export async function PUT(
       )
     }
 
-    const { theme, title, subtitle, description, streamUrl } = await request.json()
+    const { theme, title, subtitle, description, streamProvider, videoId } = await request.json()
 
     // Actualizar el evento
     const event = await prisma.event.update({
@@ -68,11 +68,13 @@ export async function PUT(
         streamConfig: {
           upsert: {
             create: {
-              streamUrl,
+              provider: streamProvider,
+              videoId,
               isLive: false
             },
             update: {
-              streamUrl
+              provider: streamProvider,
+              videoId
             }
           }
         }

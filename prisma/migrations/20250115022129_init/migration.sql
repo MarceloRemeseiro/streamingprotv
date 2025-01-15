@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "StreamProvider" AS ENUM ('CLOUDFLARE', 'YOUTUBE');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 
 -- CreateTable
@@ -24,6 +27,9 @@ CREATE TABLE "Event" (
     "endDate" TIMESTAMP(3) NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "theme" JSONB,
+    "title" TEXT,
+    "subtitle" TEXT,
+    "description" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -33,7 +39,8 @@ CREATE TABLE "Event" (
 -- CreateTable
 CREATE TABLE "StreamConfig" (
     "id" TEXT NOT NULL,
-    "streamUrl" TEXT NOT NULL,
+    "provider" "StreamProvider" NOT NULL DEFAULT 'CLOUDFLARE',
+    "videoId" TEXT NOT NULL,
     "isLive" BOOLEAN NOT NULL DEFAULT false,
     "eventId" TEXT NOT NULL,
 

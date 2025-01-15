@@ -36,12 +36,18 @@ model Event {
   participants  User[]    
 }
 
+enum StreamProvider {
+  CLOUDFLARE
+  YOUTUBE
+}
+
 model StreamConfig {
-  id            String    @id @default(cuid())
-  streamUrl     String    // iframe completo del streaming
-  isLive        Boolean   @default(false)
-  event         Event     @relation(fields: [eventId], references: [id])
-  eventId       String    @unique
+  id            String         @id @default(cuid())
+  provider      StreamProvider @default(CLOUDFLARE)
+  videoId       String         // ID del video (Cloudflare o YouTube)
+  isLive        Boolean        @default(false)
+  event         Event          @relation(fields: [eventId], references: [id])
+  eventId       String         @unique
 }
 
 enum Role {

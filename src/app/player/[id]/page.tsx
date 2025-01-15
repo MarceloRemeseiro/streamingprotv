@@ -74,8 +74,12 @@ export default async function PlayerPage({ params }: { params: { id: string } })
           className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg"
           style={{ backgroundColor: event.theme?.secondaryColor || '#1F2937' }}
         >
-          {event.streamConfig?.streamUrl ? (
-            <StreamPlayer url={event.streamConfig.streamUrl} className="w-full h-full" />
+          {event.streamConfig?.videoId ? (
+            <StreamPlayer 
+              provider={event.streamConfig.provider} 
+              videoId={event.streamConfig.videoId} 
+              className="w-full h-full" 
+            />
           ) : (
             <div className="flex items-center justify-center flex-col space-y-4">
               <div 

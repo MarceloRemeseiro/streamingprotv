@@ -15,7 +15,8 @@ type EventContent = {
   title: string
   subtitle: string
   description: string
-  streamUrl: string
+  streamProvider: 'CLOUDFLARE' | 'YOUTUBE'
+  videoId: string
 }
 
 export default function ThemeEditor({ eventId }: { eventId: string }) {
@@ -30,7 +31,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
     title: '',
     subtitle: '',
     description: '',
-    streamUrl: ''
+    streamProvider: 'CLOUDFLARE',
+    videoId: ''
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -47,7 +49,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
           title: data.title || '',
           subtitle: data.subtitle || '',
           description: data.description || '',
-          streamUrl: data.streamConfig?.streamUrl || ''
+          streamProvider: data.streamConfig?.provider || 'CLOUDFLARE',
+          videoId: data.streamConfig?.videoId || ''
         })
       } catch (error) {
         console.error('Error loading event:', error)
@@ -74,7 +77,8 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
           title: content.title,
           subtitle: content.subtitle,
           description: content.description,
-          streamUrl: content.streamUrl
+          streamProvider: content.streamProvider,
+          videoId: content.videoId
         }),
       })
 
@@ -123,7 +127,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 type="text"
                 value={theme.primaryColor}
                 onChange={(e) => setTheme({ ...theme, primaryColor: e.target.value })}
-                className="block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
               />
             </div>
           </div>
@@ -143,7 +147,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 type="text"
                 value={theme.secondaryColor}
                 onChange={(e) => setTheme({ ...theme, secondaryColor: e.target.value })}
-                className="block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
               />
             </div>
           </div>
@@ -163,7 +167,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 type="text"
                 value={theme.backgroundColor}
                 onChange={(e) => setTheme({ ...theme, backgroundColor: e.target.value })}
-                className="block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
               />
             </div>
           </div>
@@ -183,7 +187,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 type="text"
                 value={theme.textColor}
                 onChange={(e) => setTheme({ ...theme, textColor: e.target.value })}
-                className="block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
               />
             </div>
           </div>
@@ -197,7 +201,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
             type="text"
             value={theme.logoUrl || ''}
             onChange={(e) => setTheme({ ...theme, logoUrl: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+            className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
             placeholder="https://ejemplo.com/logo.png"
           />
         </div>
@@ -213,7 +217,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 type="text"
                 value={content.title}
                 onChange={(e) => setContent({ ...content, title: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
                 placeholder="Título que aparecerá en el player"
               />
             </div>
@@ -226,7 +230,7 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 type="text"
                 value={content.subtitle}
                 onChange={(e) => setContent({ ...content, subtitle: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
                 placeholder="Subtítulo del player"
               />
             </div>
@@ -239,21 +243,41 @@ export default function ThemeEditor({ eventId }: { eventId: string }) {
                 value={content.description}
                 onChange={(e) => setContent({ ...content, description: e.target.value })}
                 rows={3}
-                className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
                 placeholder="Texto descriptivo que aparecerá en el player"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-200">
-                Código del iframe
+                Proveedor de Streaming
               </label>
-              <textarea
-                value={content.streamUrl}
-                onChange={(e) => setContent({ ...content, streamUrl: e.target.value })}
-                rows={4}
-                className="mt-1 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
-                placeholder='<iframe width="560" height="315" src="https://www.youtube.com/embed/..." ...'
+              <select
+                value={content.streamProvider}
+                onChange={(e) => setContent({ 
+                  ...content, 
+                  streamProvider: e.target.value as 'CLOUDFLARE' | 'YOUTUBE' 
+                })}
+                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                >
+                <option value="CLOUDFLARE">Cloudflare Stream</option>
+                <option value="YOUTUBE">YouTube</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-200">
+                ID del Video
+              </label>
+              <input
+                type="text"
+                value={content.videoId}
+                onChange={(e) => setContent({ ...content, videoId: e.target.value })}
+                className="mt-1 p-2 block w-full rounded-md border-gray-600 bg-gray-700 text-white"
+                placeholder={content.streamProvider === 'CLOUDFLARE' 
+                  ? 'Ej: 31c9291d43a2ee384d5e7b6d462c2f8e'
+                  : 'Ej: dQw4w9WgXcQ'
+                }
               />
             </div>
           </div>
