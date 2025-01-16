@@ -39,6 +39,12 @@ npm run docker:stop
 
 # Actualizar solo la aplicación (rebuild + restart)
 npm run docker:update
+
+# Entrar al contenedor de la aplicación
+npm run docker:app:shell
+
+# Ejecutar un comando en el contenedor (ej: npm run create-admin)
+npm run docker:app:exec "npm run create-admin"
 ```
 
 ### Requisitos
@@ -91,4 +97,20 @@ PORT=3003
 ├── prisma/          # Esquema y migraciones de BD
 ├── scripts/         # Scripts de Docker
 └── docker-compose.yml
+```
+
+### Comandos Útiles
+
+```bash
+# Crear usuario administrador
+npm run create-admin
+
+# Acceder a la base de datos
+npm run prisma:studio
+
+# Ejecutar migraciones
+npm run prisma:migrate
+
+# Poblar la base de datos
+npm run prisma:seed
 ```

@@ -19,7 +19,9 @@
     "docker:app:stop": "./scripts/stop-app.sh",
     "docker:start": "./scripts/start-all.sh",
     "docker:stop": "./scripts/stop-all.sh",
-    "docker:update": "./scripts/update-app.sh"
+    "docker:update": "./scripts/update-app.sh",
+    "docker:app:shell": "./scripts/app-shell.sh",
+    "docker:app:exec": "./scripts/app-exec.sh"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
