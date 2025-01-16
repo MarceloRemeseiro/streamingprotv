@@ -1,43 +1,20 @@
-import { getServerSession } from "next-auth/next"
+import { requireAuth } from "@/lib/session"
 import { redirect } from "next/navigation"
-import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NavHeader } from "@/components/ui/nav-header"
 import Link from "next/link"
-import type { Event, Prisma } from "@prisma/client"
+import type { UserWithEvent } from "@/types"
 import { EventStatusPill } from '@/components/ui/event-status-pill'
 
-type Theme = {
-  primaryColor: string
-  secondaryColor: string
-  backgroundColor: string
-  textColor: string
-  logoUrl?: string
-}
-
-type EventWithTheme = {
-  id: string
-  name: string
-  title: string | null
-  subtitle: string | null
-  description: string | null
-  isActive: boolean
-  theme: Prisma.JsonValue & Theme | null
-}
-
-type UserWithEvent = {
-  event: EventWithTheme | null
-}
-
 export default async function HomePage() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.email) {
-    redirect('/login')
-  }
+  const session = await requireAuth()
 
   if (session.user.role === 'ADMIN') {
     redirect('/admin')
+  }
+
+  if (!session.user.email) {
+    redirect('/login')
   }
 
   const user = await prisma.user.findUnique({
@@ -82,7 +59,7 @@ export default async function HomePage() {
   return (
     <>
       <NavHeader 
-        logo={event.theme?.logoUrl || '/logo.png'}
+        logo={event.theme?.logoUrl || undefined}
         theme={event.theme}
       />
       <main 

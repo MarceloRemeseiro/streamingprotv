@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import Hls from 'hls.js'
 import Script from 'next/script'
 
@@ -14,48 +14,28 @@ interface StreamPlayerProps {
 export function StreamPlayer({ provider, videoId, className, mode }: StreamPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  const getStreamUrl = () => {
+  const getStreamUrl = useCallback(() => {
     if (provider === 'YOUTUBE') {
-      const youtubeId = videoId.includes('youtube.com') 
-        ? videoId.split('v=')[1]?.split('&')[0] 
-        : videoId
-      return `https://www.youtube.com/embed/${youtubeId}`
+      return `https://www.youtube.com/embed/${videoId}`
     }
-
-    const matches = videoId.match(/(.*?cloudflarestream\.com\/[^\/]+)/)
-    const baseUrl = matches ? matches[1] : videoId
-
-    if (mode === 'iframe') {
-      return `${baseUrl}/iframe`
-    }
-    
-    return mode === 'dash'
-      ? `${baseUrl}/manifest/video.mpd`
-      : `${baseUrl}/manifest/video.m3u8`
-  }
+    return videoId
+  }, [provider, videoId])
 
   useEffect(() => {
+    const url = getStreamUrl()
+    
     if (provider === 'CLOUDFLARE' && mode === 'hls' && videoRef.current) {
       if (Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-        })
-        
+        const hls = new Hls()
         hls.attachMedia(videoRef.current)
         hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          hls.loadSource(getStreamUrl())
+          hls.loadSource(url)
         })
-
-        return () => {
-          hls.destroy()
-        }
       } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
-        // Para Safari que tiene soporte nativo de HLS
-        videoRef.current.src = getStreamUrl()
+        videoRef.current.src = url
       }
     }
-  }, [provider, videoId, mode])
+  }, [provider, videoId, mode, getStreamUrl])
 
   // Renderizar iframe para YouTube o Cloudflare en modo iframe
   if (mode === 'iframe' || provider === 'YOUTUBE') {

@@ -1,17 +1,9 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { LogoutButton } from './logout-button'
+import { NavHeaderProps } from '@/types'
 
-interface NavHeaderProps {
-  logo?: string
-  theme?: {
-    backgroundColor?: string
-    secondaryColor?: string
-    primaryColor?: string
-    textColor?: string
-  } | null
-}
-
-export function NavHeader({ logo, theme }: NavHeaderProps) {
+export function NavHeader({ logo = '/logo.png', theme }: NavHeaderProps) {
   return (
     <nav 
       className="border-b border-gray-700"
@@ -21,10 +13,13 @@ export function NavHeader({ logo, theme }: NavHeaderProps) {
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <img 
-                src={logo || '/logo.png'} 
+              <Image 
+                src={logo} 
                 alt="Logo" 
+                width={96}
+                height={96}
                 className="h-24 p-2 w-auto"
+                priority
               />
             </Link>
           </div>

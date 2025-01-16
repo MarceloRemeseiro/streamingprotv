@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 
 export async function GET(
-  request: Request,
-  context: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = await context.params.id
+  const { id } = await params
 
   try {
     const session = await getServerSession(authOptions)
@@ -28,16 +28,16 @@ export async function GET(
     }
 
     return NextResponse.json(event)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: 'Error al obtener el evento' }, { status: 500 })
   }
 }
 
 export async function PUT(
-  request: Request,
-  context: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = context.params.id
+  const { id } = await params
 
   try {
     const session = await getServerSession(authOptions)

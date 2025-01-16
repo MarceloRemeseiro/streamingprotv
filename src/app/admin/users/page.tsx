@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { prisma } from '@/lib/prisma'
+import { useState, useEffect, useCallback } from 'react'
 import { UsersTable } from './components/users-table'
 import { User, SortField, SortOrder } from './types'
 
@@ -11,40 +10,42 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [totalUsers, setTotalUsers] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedEventId, setSelectedEventId] = useState<string>()
+  const [selectedEventId, setSelectedEventId] = useState<string>('')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
   const [events, setEvents] = useState<Array<{ id: string; name: string }>>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // Cargar usuarios
-  useEffect(() => {
-    loadUsers()
-    loadEvents()
-  }, [currentPage, selectedEventId, sortField, sortOrder])
-
-  async function loadUsers() {
+  const loadUsers = useCallback(async () => {
     try {
       const searchParams = new URLSearchParams({
         page: currentPage.toString(),
         pageSize: PAGE_SIZE.toString(),
         sortField,
         sortOrder,
-        ...(selectedEventId && { eventId: selectedEventId }),
       })
 
+      if (selectedEventId) {
+        searchParams.append('eventId', selectedEventId)
+      }
+
       const response = await fetch(`/api/users?${searchParams}`)
+      if (!response.ok) throw new Error('Error cargando usuarios')
       const data = await response.json()
-      
       setUsers(data.users)
       setTotalUsers(data.total)
     } catch (error) {
-      console.error('Error loading users:', error)
+      console.error('Error:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [currentPage, selectedEventId, sortField, sortOrder])
+
+  useEffect(() => {
+    loadUsers()
+    loadEvents()
+  }, [loadUsers])
 
   async function loadEvents() {
     try {

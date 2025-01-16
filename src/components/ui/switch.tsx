@@ -11,7 +11,7 @@ interface SwitchProps extends React.ComponentPropsWithoutRef<typeof SwitchPrimit
 const Switch = React.forwardRef<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   SwitchProps
->(({ className, ...props }, ref) => (
+>(({ ...props }, ref) => (
   <SwitchPrimitives.Root
     className="peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-indigo-600 data-[state=unchecked]:bg-gray-600"
     {...props}

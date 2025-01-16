@@ -34,11 +34,6 @@ export function UsersTable({
     setShowDeleteConfirm(true)
   }
 
-  const handleDeleteSingle = (user: User) => {
-    setUsersToDelete([user])
-    setShowDeleteConfirm(true)
-  }
-
   const totalPages = Math.ceil(totalUsers / pageSize)
 
   return (

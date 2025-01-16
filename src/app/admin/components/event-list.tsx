@@ -23,10 +23,8 @@ export function EventList() {
         const response = await fetch('/api/events')
         if (!response.ok) throw new Error('Error cargando eventos')
         const data = await response.json()
-        console.log('Eventos cargados:', data)
         setEvents(data)
-      } catch (error) {
-        console.error('Error en la carga de eventos:', error)
+      } catch {
         setError('Error al cargar los eventos')
       } finally {
         setIsLoading(false)
@@ -36,45 +34,21 @@ export function EventList() {
     loadEvents()
   }, [])
 
-  if (isLoading) {
-    return (
-      <div className="rounded-lg border border-gray-700 bg-gray-800 p-12 text-center">
-        <p className="text-sm text-gray-400">Cargando eventos...</p>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-lg border border-gray-700 bg-gray-800 p-12 text-center">
-        <p className="text-sm text-red-400">{error}</p>
-      </div>
-    )
-  }
-
-  if (events.length === 0) {
-    return (
-      <div className="rounded-lg border border-gray-700 bg-gray-800 p-12 text-center">
-        <h3 className="mt-2 text-sm font-semibold text-white">No hay eventos</h3>
-        <p className="mt-1 text-sm text-gray-400">
-          Comienza creando tu primer evento.
-        </p>
-      </div>
-    )
-  }
+  if (isLoading) return <div>Cargando...</div>
+  if (error) return <div>{error}</div>
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-700 bg-gray-800">
+    <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-700">
         <thead>
           <tr>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white">
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-300">
               Nombre
             </th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white">
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-300">
               Código
             </th>
-            <th className="px-3 py-3.5 text-left text-sm font-semibold text-white">
+            <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-300">
               Estado
             </th>
             <th className="relative py-3.5 pl-3 pr-4 sm:pr-6">
@@ -82,8 +56,8 @@ export function EventList() {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-700">
-          {events.map((event: any) => (
+        <tbody className="divide-y divide-gray-800">
+          {events.map((event: Event) => (
             <tr key={event.id}>
               <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-300">
                 {event.name}
@@ -96,10 +70,9 @@ export function EventList() {
               </td>
               <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                 <Link href={`/admin/events/${event.id}/theme`}>
-                
-                <button className="text-indigo-400 hover:text-indigo-300">
-                  Editar
-                </button>
+                  <button className="text-indigo-400 hover:text-indigo-300">
+                    Editar
+                  </button>
                 </Link>
               </td>
             </tr>
