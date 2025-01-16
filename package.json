@@ -12,7 +12,14 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "prisma:seed": "prisma db seed",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "docker:db:start": "./scripts/start-db.sh",
+    "docker:db:stop": "./scripts/stop-db.sh",
+    "docker:app:start": "./scripts/start-app.sh",
+    "docker:app:stop": "./scripts/stop-app.sh",
+    "docker:start": "./scripts/start-all.sh",
+    "docker:stop": "./scripts/stop-all.sh",
+    "docker:update": "./scripts/update-app.sh"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

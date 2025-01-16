@@ -1,38 +1,27 @@
-FROM node:20-alpine
+# Base image
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Copy package files
 COPY package*.json ./
-
-# Limpiar cache de npm
-RUN npm cache clean --force
-
-# Instalar todas las dependencias (incluyendo devDependencies)
-RUN npm install --verbose
-
-# Copiar archivos de configuración
 COPY prisma ./prisma/
-COPY .env ./
-COPY tsconfig.json ./
-COPY tailwind.config.ts ./
-COPY postcss.config.js ./
 
-# Copiar el código fuente
-COPY src ./src
-COPY scripts ./scripts
+# Install dependencies
+RUN npm install
 
-# Generar Prisma Client
+# Generate Prisma Client
 RUN npx prisma generate
 
-# Construir la aplicación
+# Copy source code
+COPY . .
+
+# Build application
 RUN npm run build
 
-# Exponer el puerto
-EXPOSE 3000
+# Expose port
+EXPOSE 3003
 
-# Dar permisos al script de entrada
-RUN chmod +x scripts/docker-entrypoint.sh
-
-# Iniciar la aplicación
-ENTRYPOINT ["./scripts/docker-entrypoint.sh"] 
+# Start application
+CMD ["npm", "start"] 
