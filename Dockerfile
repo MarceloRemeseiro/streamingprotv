@@ -1,11 +1,13 @@
 # Base image
-FROM node:18-alpine
+FROM node:18-bullseye-slim
 
 # Set working directory
 WORKDIR /app
 
 # Install dependencies required for Prisma
-RUN apk add --no-cache openssl1.1-compat
+RUN apt-get update && \
+    apt-get install -y openssl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy package files
 COPY package*.json ./
